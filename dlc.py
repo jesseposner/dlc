@@ -52,7 +52,7 @@ def single_oracle_example():
     # oracle signing
 
     # generate Olivia's signature for 'yes' event
-    s_o_yes = (nonce_o +(c_o_yes * priv_key_o)) % secp256k1.q
+    s_o_yes = (nonce_o + (c_o_yes * priv_key_o)) % secp256k1.q
 
     # signature derivation
 
