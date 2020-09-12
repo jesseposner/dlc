@@ -37,7 +37,9 @@ def challenge_int(nonce_pub_key, pub_key, msg):
 
     challenge_bytes = nonce_pub_key_bytes + pub_key_bytes + msg_bytes
 
-    return int.from_bytes(challenge_bytes, 'big') % secp256k1.q
+    challenge_hash = sha256(challenge_bytes).digest()
+
+    return int.from_bytes(challenge_hash, 'big') % secp256k1.q
 
 def sign_msg(priv_key, nonce, msg):
     nonce_pub_key = G * nonce
