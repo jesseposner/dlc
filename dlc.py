@@ -126,7 +126,7 @@ def dual_oracle_example():
     return verify_sig(agg_nonce_pub_key_yes_no, agg_pub_key, s_yes_no, 'tx_yes_no')
 
 def generate_private_key():
-    return secrets.randbits(256)
+    return secrets.randbits(256) % secp256k1.q
 
 def generate_public_key(priv_key):
     return G * priv_key
