@@ -20,6 +20,8 @@ def single_oracle_example():
     agg_pub_key = pub_key_a + pub_key_b
     # generate Olivia's key pairs
     priv_key_o, pub_key_o = generate_key_pair()
+    # generate Olivia's nonce
+    nonce_o, nonce_pub_key_o = generate_key_pair()
     # generate Olivia's challenge hash for 'yes' event
     c_o_yes = challenge_int(nonce_pub_key_o, pub_key_o, 'yes')
     # generate Olivia's signature point for 'yes' event
