@@ -38,7 +38,7 @@ def single_oracle_example():
     # generate adaptor signature nonce pub key for 'yes' event
     agg_nonce_pub_key_yes = agg_nonce_pub_key + s_o_pub_key_yes
 
-    # adaptor signatures
+    # adaptor signature
 
     # generate adaptor signature challenge hash for 'yes' event
     c_yes = challenge_int(agg_nonce_pub_key_yes, agg_pub_key, 'tx_yes')
