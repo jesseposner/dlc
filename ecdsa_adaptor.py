@@ -24,7 +24,8 @@ class ECDSAdaptor:
         return R, R_a, s_a
 
     @classmethod
-    def verify(cls, X, Y, message_hash, R, R_a, s_a):
+    def verify(cls, X, Y, message_hash, a):
+        R, R_a, s_a = cls.__parse_sig(a)
         Q = cls.Q
         m = int.from_bytes(message_hash, 'big')
         u_1 = (m * pow(s_a, Q - 2, Q)) % Q
@@ -32,6 +33,15 @@ class ECDSAdaptor:
         u_2 = (r * pow(s_a, Q - 2, Q)) % Q
 
         return (u_1 * cls.__G()) + (u_2 * X) == R_a
+
+    @classmethod
+    def __parse_sig(cls, a):
+        a_bytes = bytes.fromhex(a)
+        R = cls.Point.sec_decode(a_bytes[:33].hex())
+        R_a = cls.Point.sec_decode(a_bytes[33:66].hex())
+        s_a = int.from_bytes(a_bytes[66:98], 'big')
+
+        return R, R_a, s_a
 
     @classmethod
     def __G(cls):
