@@ -41,6 +41,16 @@ class ECDSAdaptor:
         return (u_1 * cls.__G()) + (u_2 * X) == R_a
 
     @classmethod
+    def decrypt(cls, a, y):
+        Q = cls.Q
+        R, _, s_a = cls.__parse_sig(a)
+        r = R.x
+        # s = s_a/y
+        s = (s_a * pow(y, Q - 2, Q)) % Q
+
+        return format(r, 'x') + format(s, 'x')
+
+    @classmethod
     def __parse_sig(cls, a):
         a_bytes = bytes.fromhex(a)
         R = cls.Point.sec_decode(a_bytes[:33].hex())
