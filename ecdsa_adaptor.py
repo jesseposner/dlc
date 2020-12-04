@@ -14,10 +14,10 @@ class ECDSAdaptor:
     def encrypt(cls, x, Y, message_hash):
         Q = cls.Q
         k = secrets.randbits(256) % Q
-        m = int.from_bytes(message_hash, 'big') % Q
+        m = int.from_bytes(message_hash, 'big')
         R_a = k * cls.__G()
         R = k * Y
-        r = R.x % Q
+        r = R.x
         s_a = ((m + r * x) * pow(k, Q - 2, Q)) % Q
 
         # TODO: return encoded public keys
@@ -26,9 +26,9 @@ class ECDSAdaptor:
     @classmethod
     def verify(cls, X, Y, message_hash, R, R_a, s_a):
         Q = cls.Q
-        m = int.from_bytes(message_hash, 'big') % Q
+        m = int.from_bytes(message_hash, 'big')
         u_1 = (m * pow(s_a, Q - 2, Q)) % Q
-        r = R.x % Q
+        r = R.x
         u_2 = (r * pow(s_a, Q - 2, Q)) % Q
 
         return (u_1 * cls.__G()) + (u_2 * X) == R_a
