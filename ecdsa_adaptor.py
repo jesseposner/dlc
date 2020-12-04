@@ -18,6 +18,7 @@ class ECDSAdaptor:
         R_a = k * cls.__G()
         R = k * Y
         r = R.x
+        # s_a = (m + rx)/k
         s_a = ((m + r * x) * pow(k, Q - 2, Q)) % Q
 
         # TODO: return encoded public keys
@@ -30,10 +31,14 @@ class ECDSAdaptor:
         R, R_a, s_a = cls.__parse_sig(a)
         Q = cls.Q
         m = int(message_hash, 16)
+        # u_1 = m/s_a
         u_1 = (m * pow(s_a, Q - 2, Q)) % Q
         r = R.x
+        # u_2 = r/s_a
         u_2 = (r * pow(s_a, Q - 2, Q)) % Q
 
+        # u_1 + (u_2 * x) == k
+        # (u_1 + (u_2 * x))G == kG
         return (u_1 * cls.__G()) + (u_2 * X) == R_a
 
     @classmethod
