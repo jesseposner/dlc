@@ -13,23 +13,29 @@ class ECDSAdaptor:
     @classmethod
     def encrypt(cls, x, Y, message_hash):
         Q = cls.Q
-        k = secrets.randbits(256) % Q
 
+        # parse
         x = int(x, 16)
         Y = cls.Point.sec_deserialize(Y)
         m = int.from_bytes(message_hash, 'big')
+
+        # nonce
+        k = secrets.randbits(256) % Q
         R_a = k * cls.__G()
         R = k * Y
         r = R.x
+
+        # sign
         # s_a = (m + rx)/k
         s_a = ((m + r * x) * pow(k, Q - 2, Q)) % Q
 
-        return R.sec_encode() + R_a.sec_encode() + format(s_a, 'x')
+        # serialize
+        return R.sec_serialize() + R_a.sec_serialize() + format(s_a, 'x')
 
     @classmethod
     def verify(cls, X, Y, message_hash, a):
-        X = cls.Point.sec_decode(X)
-        Y = cls.Point.sec_decode(Y)
+        X = cls.Point.sec_deserialize(X)
+        Y = cls.Point.sec_deserialize(Y)
         R, R_a, s_a = cls.__parse_sig(a)
         Q = cls.Q
         m = int(message_hash, 16)
@@ -46,10 +52,13 @@ class ECDSAdaptor:
     @classmethod
     def decrypt(cls, a, y):
         Q = cls.Q
+
+        # parse
         R, _, s_a = cls.__parse_sig(a)
         r = R.x
         y = int(y, 16)
 
+        # decrypt
         # s = s_a/y
         s = (s_a * pow(y, Q - 2, Q)) % Q
 
@@ -58,8 +67,8 @@ class ECDSAdaptor:
     @classmethod
     def __parse_sig(cls, a):
         a_bytes = bytes.fromhex(a)
-        R = cls.Point.sec_decode(a_bytes[:33].hex())
-        R_a = cls.Point.sec_decode(a_bytes[33:66].hex())
+        R = cls.Point.sec_deserialize(a_bytes[:33].hex())
+        R_a = cls.Point.sec_deserialize(a_bytes[33:66].hex())
         s_a = int.from_bytes(a_bytes[66:98], 'big')
 
         return R, R_a, s_a
@@ -78,7 +87,7 @@ class ECDSAdaptor:
             self.y = y
 
         @classmethod
-        def sec_decode(cls, hex_public_key):
+        def sec_deserialize(cls, hex_public_key):
             P = cls.P
             hex_bytes = bytes.fromhex(hex_public_key)
             is_even = hex_bytes[0] == 2
@@ -96,7 +105,7 @@ class ECDSAdaptor:
 
             return cls(x, y)
 
-        def sec_encode(self):
+        def sec_serialize(self):
             prefix = '02' if self.y % 2 == 0 else '03'
 
             return prefix + format(self.x, 16)
