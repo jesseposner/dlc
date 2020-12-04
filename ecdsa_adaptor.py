@@ -21,8 +21,7 @@ class ECDSAdaptor:
         # s_a = (m + rx)/k
         s_a = ((m + r * x) * pow(k, Q - 2, Q)) % Q
 
-        # TODO: return encoded public keys
-        return R, R_a, s_a
+        return R.sec_encode() + R_a.sec_encode() + format(s_a, 'x')
 
     @classmethod
     def verify(cls, X, Y, message_hash, a):
@@ -81,6 +80,11 @@ class ECDSAdaptor:
             y = even_y if is_even else odd_y
 
             return cls(x, y)
+
+        def sec_encode(self):
+            prefix = '02' if self.y % 2 == 0 else '03'
+
+            return prefix + format(self.x, 16)
 
         def is_zero(self):
             return self.x == float('inf') or self.y == float('inf')
