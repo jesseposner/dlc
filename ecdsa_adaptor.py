@@ -14,6 +14,9 @@ class ECDSAdaptor:
     def encrypt(cls, x, Y, message_hash):
         Q = cls.Q
         k = secrets.randbits(256) % Q
+
+        x = int(x, 16)
+        Y = cls.Point.sec_deserialize(Y)
         m = int.from_bytes(message_hash, 'big')
         R_a = k * cls.__G()
         R = k * Y
@@ -45,6 +48,8 @@ class ECDSAdaptor:
         Q = cls.Q
         R, _, s_a = cls.__parse_sig(a)
         r = R.x
+        y = int(y, 16)
+
         # s = s_a/y
         s = (s_a * pow(y, Q - 2, Q)) % Q
 
