@@ -66,6 +66,32 @@ class ECDSAdaptor:
         return format(r, 'x') + format(s, 'x')
 
     @classmethod
+    def recover(cls, Y, a, sig):
+        Q = cls.Q
+
+        # parse
+        Y = cls.Point.sec_deserialize(Y)
+        R, R_a, s_a = cls.__parse_a(a)
+        sig_bytes = bytes.fromhex(sig)
+        r = int.from_bytes(sig_bytes[:32], 'big')
+        s = int.from_bytes(sig_bytes[32:], 'big')
+
+        # validate
+        r_implied = R.x % cls.Q
+        assert r_implied == r
+        y = (s_a * pow(s, Q - 2, Q)) % Q
+        Y_implied = y * cls.__G()
+
+        # recover
+        if Y_implied == Y:
+            return format(y, 'x')
+        if Y_implied == -Y:
+            return format(cls.Point.P - y, 'x')
+
+        # fail
+        return None
+
+    @classmethod
     def __parse_a(cls, a):
         a_bytes = bytes.fromhex(a)
         R = cls.Point.sec_deserialize(a_bytes[:33].hex())
@@ -119,6 +145,12 @@ class ECDSAdaptor:
 
         def __ne__(self, other):
             return not self == other
+
+        def __neg__(self):
+            if self.is_zero():
+                return self
+
+            return self.__class__(self.x, self.P - self.y)
 
         def dbl(self):
             x = self.x
