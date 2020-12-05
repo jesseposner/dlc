@@ -62,6 +62,7 @@ class ECDSAdaptor:
         # s = s_a/y
         s = (s_a * pow(y, Q - 2, Q)) % Q
 
+        # serialize
         return format(r, 'x') + format(s, 'x')
 
     @classmethod
