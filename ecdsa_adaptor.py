@@ -36,7 +36,7 @@ class ECDSAdaptor:
     def verify(cls, X, Y, message_hash, a):
         X = cls.Point.sec_deserialize(X)
         Y = cls.Point.sec_deserialize(Y)
-        R, R_a, s_a = cls.__parse_sig(a)
+        R, R_a, s_a = cls.__parse_a(a)
         Q = cls.Q
         m = int(message_hash, 16)
         # u_1 = m/s_a
@@ -54,7 +54,7 @@ class ECDSAdaptor:
         Q = cls.Q
 
         # parse
-        R, _, s_a = cls.__parse_sig(a)
+        R, _, s_a = cls.__parse_a(a)
         r = R.x
         y = int(y, 16)
 
@@ -65,7 +65,7 @@ class ECDSAdaptor:
         return format(r, 'x') + format(s, 'x')
 
     @classmethod
-    def __parse_sig(cls, a):
+    def __parse_a(cls, a):
         a_bytes = bytes.fromhex(a)
         R = cls.Point.sec_deserialize(a_bytes[:33].hex())
         R_a = cls.Point.sec_deserialize(a_bytes[33:66].hex())
