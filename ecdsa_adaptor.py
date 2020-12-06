@@ -135,7 +135,7 @@ class ECDSAdaptor:
         def sec_serialize(self):
             prefix = '02' if self.y % 2 == 0 else '03'
 
-            return prefix + format(self.x, 16)
+            return prefix + format(self.x, 'x')
 
         def is_zero(self):
             return self.x == float('inf') or self.y == float('inf')
