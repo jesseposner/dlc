@@ -79,10 +79,10 @@ class ECDSAdaptor:
         # validate
         r_implied = R.x % cls.Q
         assert r_implied == r
-        y = (s_a * pow(s, Q - 2, Q)) % Q
-        Y_implied = y * cls.__G()
 
         # recover
+        y = (s_a * pow(s, Q - 2, Q)) % Q
+        Y_implied = y * cls.__G()
         if Y_implied == Y:
             return format(y, 'x')
         if Y_implied == -Y:
