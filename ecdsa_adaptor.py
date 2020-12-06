@@ -137,6 +137,7 @@ class ECDSAdaptor:
 
             return prefix + format(self.x, 'x')
 
+        # point at infinity
         def is_zero(self):
             return self.x == float('inf') or self.y == float('inf')
 
@@ -194,7 +195,7 @@ class ECDSAdaptor:
 
         def __str__(self):
             if self.is_zero():
-                return '<POINT AT INFINITY>'
+                return '0'
             return 'X: 0x{:x}\nY: 0x{:x}'.format(self.x, self.y)
 
         def __repr__(self) -> str:
