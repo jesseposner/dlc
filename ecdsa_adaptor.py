@@ -116,15 +116,14 @@ class ECDSAdaptor:
 
     @classmethod
     def __DLEQ_verify(cls, X, Y, Z, proof):
-        b = int.from_bytes(proof[:32], 'big')
+        b_bytes = proof[:32]
+        b = int.from_bytes(b_bytes, 'big')
         c = int.from_bytes(proof[32:], 'big')
         A_G = (c * cls.__G()) + -(b * X)
         A_Y = (c * Y) + -(b * Z)
-        implied_b = int.from_bytes(
-            cls.__derive_b(X, Y, Z, A_G, A_Y), 'big'
-        )
+        implied_b = cls.__derive_b(X, Y, Z, A_G, A_Y)
 
-        assert implied_b == b
+        assert implied_b == b_bytes
 
     @classmethod
     def __derive_b(cls, X, Y, Z, A_G, A_Y):
