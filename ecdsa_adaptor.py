@@ -1,6 +1,7 @@
 """Python ECDSA adaptor signatures implementation."""
 
 import secrets
+from hashlib import sha256
 
 
 class ECDSAdaptor:
@@ -25,20 +26,27 @@ class ECDSAdaptor:
         R = k * Y
         r = R.x
 
+        # DLEQ proof
+        proof = cls.__DLEQ_prove(k, R_a, Y, R)
+
         # sign
         # s_a = (m + rx)/k
         s_a = ((m + r * x) * pow(k, Q - 2, Q)) % Q
 
         # serialize
-        return R.sec_serialize() + R_a.sec_serialize() + format(s_a, 'x')
+        return R.sec_serialize() + R_a.sec_serialize() + format(s_a, 'x') + proof
 
     @classmethod
     def verify(cls, X, Y, message_hash, a):
-        X = cls.Point.sec_deserialize(X)
-        Y = cls.Point.sec_deserialize(Y)
-        R, R_a, s_a = cls.__parse_a(a)
         Q = cls.Q
+
+        # parse and verify DLEQ proof
+        R, R_a, s_a, proof = cls.__parse_a(a)
+        Y = cls.Point.sec_deserialize(Y)
+        cls.__DLEQ_verify(R_a, Y, R, proof)
+        X = cls.Point.sec_deserialize(X)
         m = int(message_hash, 16)
+
         # u_1 = m/s_a
         u_1 = (m * pow(s_a, Q - 2, Q)) % Q
         r = R.x
@@ -54,7 +62,7 @@ class ECDSAdaptor:
         Q = cls.Q
 
         # parse
-        R, _, s_a = cls.__parse_a(a)
+        R, _, s_a, _ = cls.__parse_a(a)
         r = R.x
         y = int(y, 16)
 
@@ -92,13 +100,51 @@ class ECDSAdaptor:
         return None
 
     @classmethod
+    def __DLEQ_prove(cls, x, X, Y, Z):
+        Q = cls.Q
+
+        # nonce
+        a = secrets.randbits(256) % Q
+        A_G = a * cls.__G()
+        A_Y = a * Y
+        b = cls.__derive_b(X, Y, Z, A_G, A_Y)
+        b_int = int.from_bytes(b, 'big')
+        c = (a + b_int * x) % Q
+        c_bytes = (c).to_bytes(32, 'big')
+
+        return (b + c_bytes).hex()
+
+    @classmethod
+    def __DLEQ_verify(cls, X, Y, Z, proof):
+        b = int.from_bytes(proof[:32], 'big')
+        c = int.from_bytes(proof[32:], 'big')
+        A_G = (c * cls.__G()) + -(b * X)
+        A_Y = (c * Y) + -(b * Z)
+        implied_b = int.from_bytes(
+            cls.__derive_b(X, Y, Z, A_G, A_Y), 'big'
+        )
+
+        assert implied_b == b
+
+    @classmethod
+    def __derive_b(cls, X, Y, Z, A_G, A_Y):
+        b_bytes = b''
+        for p in [X, Y, Z, A_G, A_Y]:
+            b_bytes += bytes.fromhex(p.sec_serialize())
+        tag_string = sha256(b'eq(DLG(secp256k1),DL(secp256k1))').digest()
+        tag = tag_string + tag_string
+
+        return sha256(tag + b_bytes).digest()
+
+    @classmethod
     def __parse_a(cls, a):
         a_bytes = bytes.fromhex(a)
         R = cls.Point.sec_deserialize(a_bytes[:33].hex())
         R_a = cls.Point.sec_deserialize(a_bytes[33:66].hex())
         s_a = int.from_bytes(a_bytes[66:98], 'big')
+        proof = a_bytes[98:162]
 
-        return R, R_a, s_a
+        return R, R_a, s_a, proof
 
     @classmethod
     def __G(cls):
