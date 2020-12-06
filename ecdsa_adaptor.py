@@ -107,9 +107,9 @@ class ECDSAdaptor:
         a = secrets.randbits(256) % Q
         A_G = a * cls.__G()
         A_Y = a * Y
-        b = cls.__derive_b(X, Y, Z, A_G, A_Y)
-        b_int = int.from_bytes(b, 'big')
-        c = (a + b_int * x) % Q
+        b_bytes = cls.__derive_b(X, Y, Z, A_G, A_Y)
+        b = int.from_bytes(b_bytes, 'big')
+        c = (a + b * x) % Q
         c_bytes = (c).to_bytes(32, 'big')
 
         return (b + c_bytes).hex()
