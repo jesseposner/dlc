@@ -88,7 +88,8 @@ class ECDSAdaptor:
 
         # validate
         r_implied = R.x % cls.Q
-        assert r_implied == r
+        if r_implied != r:
+            raise cls.RecoverError("Unexpected r value")
 
         # recover
         y = (s_a * pow(s, Q - 2, Q)) % Q
@@ -124,7 +125,10 @@ class ECDSAdaptor:
         A_Y = (c * Y) + -(b * Z)
         implied_b = cls.__derive_b(X, Y, Z, A_G, A_Y)
 
-        assert implied_b == b_bytes
+        if implied_b != b_bytes:
+            raise cls.VerifyError("Unexpected 'b' value in DLEQ_verify")
+
+        return True
 
     @classmethod
     def __derive_b(cls, X, Y, Z, A_G, A_Y):
@@ -149,6 +153,12 @@ class ECDSAdaptor:
     @classmethod
     def __G(cls):
         return cls.Point(cls.G_x, cls.G_y)
+
+    class RecoverError(Exception):
+        pass
+
+    class VerifyError(Exception):
+        pass
 
     class Point:
         """Class representing a secp256k1 elliptic curve point."""
