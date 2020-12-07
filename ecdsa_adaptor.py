@@ -96,7 +96,7 @@ class ECDSAdaptor:
         if Y_implied == Y:
             return format(y, 'x')
         if Y_implied == -Y:
-            return format(cls.Point.P - y, 'x')
+            return format(Q - y, 'x')
 
         # fail
         return None
