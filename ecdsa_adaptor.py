@@ -69,6 +69,8 @@ class ECDSAdaptor:
         # decrypt
         # s = s_a/y
         s = (s_a * pow(y, Q - 2, Q)) % Q
+        if s > 0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF5D576E7357A4501DDFE92F46681B20A0:
+            s = Q - s
 
         # serialize
         return format(r, 'x') + format(s, 'x')
