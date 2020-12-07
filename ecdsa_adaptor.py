@@ -1,6 +1,8 @@
 """Python ECDSA adaptor signatures implementation."""
 
 import secrets
+import json
+import unittest
 from hashlib import sha256
 
 
@@ -256,3 +258,38 @@ class ECDSAdaptor:
 
         def __repr__(self) -> str:
             return self.__str__()
+
+class TestVectors(unittest.TestCase):
+    def test_json(self):
+        with open('ecdsa_adaptor.json') as f:
+            vectors = json.load(f)
+
+        for vector in vectors:
+            X = vector['public_signing_key']
+            Y = vector['encryption_key']
+            message_hash = vector['message_hash']
+            a = vector['adaptor_sig']
+            y = vector['decryption_key']
+            signature = vector['signature']
+            if 'error' not in vector:
+                self.assertTrue(ECDSAdaptor.verify(X, Y, message_hash, a))
+                self.assertEqual(ECDSAdaptor.decrypt(a, y), signature)
+                self.assertEqual(ECDSAdaptor.recover(Y, a, signature), y)
+            else:
+                error = vector['error']
+                if error == "s_a is the negated and therefore doesn't match R_a":
+                    self.assertFalse(ECDSAdaptor.verify(X, Y, message_hash, a))
+                elif error == "signature R value does not match encrypted signature":
+                    self.assertTrue(ECDSAdaptor.verify(X, Y, message_hash, a))
+                    self.assertNotEqual(ECDSAdaptor.decrypt(a, y), signature)
+                    with self.assertRaises(ECDSAdaptor.RecoverError):
+                        ECDSAdaptor.recover(Y, a, signature)
+                elif error == "DLEQ proof is wrong":
+                    with self.assertRaises(ECDSAdaptor.VerifyError):
+                        ECDSAdaptor.verify(X, Y, message_hash, a)
+                else:
+                    self.fail('Unknown vector error type')
+
+
+if __name__ == '__main__':
+    unittest.main()
