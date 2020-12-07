@@ -81,7 +81,7 @@ class ECDSAdaptor:
 
         # parse
         Y = cls.Point.sec_deserialize(Y)
-        R, R_a, s_a = cls.__parse_a(a)
+        R, R_a, s_a, _ = cls.__parse_a(a)
         sig_bytes = bytes.fromhex(sig)
         r = int.from_bytes(sig_bytes[:32], 'big')
         s = int.from_bytes(sig_bytes[32:], 'big')
