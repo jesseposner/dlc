@@ -105,7 +105,6 @@ class ECDSAdaptor:
     def __DLEQ_prove(cls, x, X, Y, Z):
         Q = cls.Q
 
-        # nonce
         a = secrets.randbits(256) % Q
         A_G = a * cls.__G()
         A_Y = a * Y
